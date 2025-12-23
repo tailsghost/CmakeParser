@@ -1,0 +1,3 @@
+C:/Users/Андрей/source/repos/CmakeParser/build/CMakeFiles/CmakeParser.dir
+C:/Users/Андрей/source/repos/CmakeParser/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/Андрей/source/repos/CmakeParser/build/CMakeFiles/ZERO_CHECK.dir
