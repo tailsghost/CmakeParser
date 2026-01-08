@@ -84,37 +84,37 @@ events:
       
       The output was:
       0
-      Версия MSBuild 18.0.5+e22287bf1 для .NET Framework
-      Сборка начата 16.12.2025 9:34:26.
+      ╨Т╨╡╤А╤Б╨╕╤П MSBuild 18.0.5+e22287bf1 ╨┤╨╗╤П .NET Framework
+      ╨б╨▒╨╛╤А╨║╨░ ╨╜╨░╤З╨░╤В╨░ 29.12.2025 15:01:41.
       
-      Проект "C:\\Users\\Андрей\\source\\repos\\CmakeParser\\build\\CMakeFiles\\4.2.1\\CompilerIdCXX\\CompilerIdCXX.vcxproj" в узле 1 (целевые объекты по умолчанию).
+      ╨Я╤А╨╛╨╡╨║╤В "C:\\Users\\╨Р╨╜╨┤╤А╨╡╨╣\\source\\repos\\CmakeParser\\build\\CMakeFiles\\4.2.1\\CompilerIdCXX\\CompilerIdCXX.vcxproj" ╨▓ ╤Г╨╖╨╗╨╡ 1 (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
       PrepareForBuild:
-        Создание каталога "Debug\\".
+        ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "Debug\\".
         Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
-        Создание каталога "Debug\\CompilerIdCXX.tlog\\".
+        ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "Debug\\CompilerIdCXX.tlog\\".
       InitializeBuildStatus:
-        Создание "Debug\\CompilerIdCXX.tlog\\unsuccessfulbuild", так как было задано "AlwaysCreate".
-        Обращение к "Debug\\CompilerIdCXX.tlog\\unsuccessfulbuild".
+        ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ "Debug\\CompilerIdCXX.tlog\\unsuccessfulbuild", ╤В╨░╨║ ╨║╨░╨║ ╨▒╤Л╨╗╨╛ ╨╖╨░╨┤╨░╨╜╨╛ "AlwaysCreate".
+        ╨Ю╨▒╤А╨░╤Й╨╡╨╜╨╕╨╡ ╨║ "Debug\\CompilerIdCXX.tlog\\unsuccessfulbuild".
       ClCompile:
         C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\CL.exe /c /nologo /W0 /WX- /diagnostics:column /Od /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\\\" /Fd"Debug\\vc145.pdb" /external:W0 /Gd /TP /FC /errorReport:queue CMakeCXXCompilerId.cpp
         CMakeCXXCompilerId.cpp
       Link:
         C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\link.exe /ERRORREPORT:QUEUE /OUT:".\\CompilerIdCXX.exe" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /PDB:".\\CompilerIdCXX.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:".\\CompilerIdCXX.lib" /MACHINE:X64 Debug\\CMakeCXXCompilerId.obj
-        CompilerIdCXX.vcxproj -> C:\\Users\\Андрей\\source\\repos\\CmakeParser\\build\\CMakeFiles\\4.2.1\\CompilerIdCXX\\CompilerIdCXX.exe
+        CompilerIdCXX.vcxproj -> C:\\Users\\╨Р╨╜╨┤╤А╨╡╨╣\\source\\repos\\CmakeParser\\build\\CMakeFiles\\4.2.1\\CompilerIdCXX\\CompilerIdCXX.exe
       PostBuildEvent:
         for %%i in (cl.exe) do @echo CMAKE_CXX_COMPILER=%%~$PATH:i
         :VCEnd
         CMAKE_CXX_COMPILER=C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\Hostx64\\x64\\cl.exe
       FinalizeBuildStatus:
-        Файл "Debug\\CompilerIdCXX.tlog\\unsuccessfulbuild" удаляется.
-        Обращение к "Debug\\CompilerIdCXX.tlog\\CompilerIdCXX.lastbuildstate".
-      Сборка проекта "C:\\Users\\Андрей\\source\\repos\\CmakeParser\\build\\CMakeFiles\\4.2.1\\CompilerIdCXX\\CompilerIdCXX.vcxproj" завершена (целевые объекты по умолчанию).
+        ╨д╨░╨╣╨╗ "Debug\\CompilerIdCXX.tlog\\unsuccessfulbuild" ╤Г╨┤╨░╨╗╤П╨╡╤В╤Б╤П.
+        ╨Ю╨▒╤А╨░╤Й╨╡╨╜╨╕╨╡ ╨║ "Debug\\CompilerIdCXX.tlog\\CompilerIdCXX.lastbuildstate".
+      ╨б╨▒╨╛╤А╨║╨░ ╨┐╤А╨╛╨╡╨║╤В╨░ "C:\\Users\\╨Р╨╜╨┤╤А╨╡╨╣\\source\\repos\\CmakeParser\\build\\CMakeFiles\\4.2.1\\CompilerIdCXX\\CompilerIdCXX.vcxproj" ╨╖╨░╨▓╨╡╤А╤И╨╡╨╜╨░ (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
       
-      Сборка успешно завершена.
-          Предупреждений: 0
-          Ошибок: 0
+      ╨б╨▒╨╛╤А╨║╨░ ╤Г╤Б╨┐╨╡╤И╨╜╨╛ ╨╖╨░╨▓╨╡╤А╤И╨╡╨╜╨░.
+          ╨Я╤А╨╡╨┤╤Г╨┐╤А╨╡╨╢╨┤╨╡╨╜╨╕╨╣: 0
+          ╨Ю╤И╨╕╨▒╨╛╨║: 0
       
-      Прошло времени 00:00:00.48
+      ╨Я╤А╨╛╤И╨╗╨╛ ╨▓╤А╨╡╨╝╨╡╨╜╨╕ 00:00:00.54
       
       
       Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.exe"
@@ -848,9 +848,9 @@ events:
       - "C:/Program Files/CMake/bin/"
       - "C:/Program Files/CMake/sbin/"
       - "C:/Program Files/CMake/"
-      - "C:/Program Files/CmakeParser/bin/"
-      - "C:/Program Files/CmakeParser/sbin/"
-      - "C:/Program Files/CmakeParser/"
+      - "C:/Program Files (x86)/CmakeParser/bin/"
+      - "C:/Program Files (x86)/CmakeParser/sbin/"
+      - "C:/Program Files (x86)/CmakeParser/"
     searched_directories:
       - "C:/Program Files/Microsoft MPI/Bin/rc.com"
       - "C:/Program Files/Microsoft MPI/Bin/rc.exe"
@@ -975,15 +975,15 @@ events:
       - "C:/Program Files/CMake/rc.com"
       - "C:/Program Files/CMake/rc.exe"
       - "C:/Program Files/CMake/rc"
-      - "C:/Program Files/CmakeParser/bin/rc.com"
-      - "C:/Program Files/CmakeParser/bin/rc.exe"
-      - "C:/Program Files/CmakeParser/bin/rc"
-      - "C:/Program Files/CmakeParser/sbin/rc.com"
-      - "C:/Program Files/CmakeParser/sbin/rc.exe"
-      - "C:/Program Files/CmakeParser/sbin/rc"
-      - "C:/Program Files/CmakeParser/rc.com"
-      - "C:/Program Files/CmakeParser/rc.exe"
-      - "C:/Program Files/CmakeParser/rc"
+      - "C:/Program Files (x86)/CmakeParser/bin/rc.com"
+      - "C:/Program Files (x86)/CmakeParser/bin/rc.exe"
+      - "C:/Program Files (x86)/CmakeParser/bin/rc"
+      - "C:/Program Files (x86)/CmakeParser/sbin/rc.com"
+      - "C:/Program Files (x86)/CmakeParser/sbin/rc.exe"
+      - "C:/Program Files (x86)/CmakeParser/sbin/rc"
+      - "C:/Program Files (x86)/CmakeParser/rc.com"
+      - "C:/Program Files (x86)/CmakeParser/rc.exe"
+      - "C:/Program Files (x86)/CmakeParser/rc"
     found: false
     search_context:
       ENV{PATH}:
@@ -1021,12 +1021,12 @@ events:
         - "C:\\Program Files\\JetBrains\\JetBrains Rider 2024.3.4\\bin"
         - "C:\\Users\\\u0410\u043d\u0434\u0440\u0435\u0439\\AppData\\Roaming\\npm"
         - "C:\\Users\\\u0410\u043d\u0434\u0440\u0435\u0439\\go\\bin"
-      CMAKE_INSTALL_PREFIX: "C:/Program Files/CmakeParser"
+      CMAKE_INSTALL_PREFIX: "C:/Program Files (x86)/CmakeParser"
       CMAKE_SYSTEM_PREFIX_PATH:
         - "C:/Program Files"
         - "C:/Program Files (x86)"
         - "C:/Program Files/CMake"
-        - "C:/Program Files/CmakeParser"
+        - "C:/Program Files (x86)/CmakeParser"
   -
     kind: "try_compile-v1"
     backtrace:
@@ -1036,50 +1036,50 @@ events:
     checks:
       - "Detecting CXX compiler ABI info"
     directories:
-      source: "C:/Users/\u0410\u043d\u0434\u0440\u0435\u0439/source/repos/CmakeParser/build/CMakeFiles/CMakeScratch/TryCompile-aq1g6m"
-      binary: "C:/Users/\u0410\u043d\u0434\u0440\u0435\u0439/source/repos/CmakeParser/build/CMakeFiles/CMakeScratch/TryCompile-aq1g6m"
+      source: "C:/Users/\u0410\u043d\u0434\u0440\u0435\u0439/source/repos/CmakeParser/build/CMakeFiles/CMakeScratch/TryCompile-hryfp5"
+      binary: "C:/Users/\u0410\u043d\u0434\u0440\u0435\u0439/source/repos/CmakeParser/build/CMakeFiles/CMakeScratch/TryCompile-hryfp5"
     cmakeVariables:
       CMAKE_CXX_FLAGS: "/DWIN32 /D_WINDOWS /EHsc"
-      CMAKE_CXX_FLAGS_DEBUG: "/Ob0 /Od /RTC1"
+      CMAKE_CXX_FLAGS_DEBUG: "/Zi /Ob0 /Od /RTC1"
       CMAKE_CXX_SCAN_FOR_MODULES: "OFF"
       CMAKE_EXE_LINKER_FLAGS: "/machine:x64"
     buildResult:
       variable: "CMAKE_CXX_ABI_COMPILED"
       cached: true
       stdout: |
-        Change Dir: 'C:/Users/Андрей/source/repos/CmakeParser/build/CMakeFiles/CMakeScratch/TryCompile-aq1g6m'
+        Change Dir: 'C:/Users/Андрей/source/repos/CmakeParser/build/CMakeFiles/CMakeScratch/TryCompile-hryfp5'
         
-        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_92192.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=18.0 /v:n
+        Run Build Command(s): "C:/Program Files/Microsoft Visual Studio/18/Community/MSBuild/Current/Bin/amd64/MSBuild.exe" cmTC_0171d.vcxproj /p:Configuration=Debug /p:Platform=x64 /p:VisualStudioVersion=18.0 /v:n
         ╨Т╨╡╤А╤Б╨╕╤П MSBuild 18.0.5+e22287bf1 ╨┤╨╗╤П .NET Framework
-        ╨б╨▒╨╛╤А╨║╨░ ╨╜╨░╤З╨░╤В╨░ 16.12.2025 9:34:26.
+        ╨б╨▒╨╛╤А╨║╨░ ╨╜╨░╤З╨░╤В╨░ 29.12.2025 15:01:42.
         
-        ╨Я╤А╨╛╨╡╨║╤В "C:\\Users\\╨Р╨╜╨┤╤А╨╡╨╣\\source\\repos\\CmakeParser\\build\\CMakeFiles\\CMakeScratch\\TryCompile-aq1g6m\\cmTC_92192.vcxproj" ╨▓ ╤Г╨╖╨╗╨╡ 1 (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
+        ╨Я╤А╨╛╨╡╨║╤В "C:\\Users\\╨Р╨╜╨┤╤А╨╡╨╣\\source\\repos\\CmakeParser\\build\\CMakeFiles\\CMakeScratch\\TryCompile-hryfp5\\cmTC_0171d.vcxproj" ╨▓ ╤Г╨╖╨╗╨╡ 1 (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
         PrepareForBuild:
           Structured output is enabled. The formatting of compiler diagnostics will reflect the error hierarchy. See https://aka.ms/cpp/structured-output for more details.
-          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "C:\\Users\\╨Р╨╜╨┤╤А╨╡╨╣\\source\\repos\\CmakeParser\\build\\CMakeFiles\\CMakeScratch\\TryCompile-aq1g6m\\Debug\\".
-          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "cmTC_92192.dir\\Debug\\cmTC_92192.tlog\\".
+          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "C:\\Users\\╨Р╨╜╨┤╤А╨╡╨╣\\source\\repos\\CmakeParser\\build\\CMakeFiles\\CMakeScratch\\TryCompile-hryfp5\\Debug\\".
+          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ ╨║╨░╤В╨░╨╗╨╛╨│╨░ "cmTC_0171d.dir\\Debug\\cmTC_0171d.tlog\\".
         InitializeBuildStatus:
-          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ "cmTC_92192.dir\\Debug\\cmTC_92192.tlog\\unsuccessfulbuild", ╤В╨░╨║ ╨║╨░╨║ ╨▒╤Л╨╗╨╛ ╨╖╨░╨┤╨░╨╜╨╛ "AlwaysCreate".
-          ╨Ю╨▒╤А╨░╤Й╨╡╨╜╨╕╨╡ ╨║ "cmTC_92192.dir\\Debug\\cmTC_92192.tlog\\unsuccessfulbuild".
+          ╨б╨╛╨╖╨┤╨░╨╜╨╕╨╡ "cmTC_0171d.dir\\Debug\\cmTC_0171d.tlog\\unsuccessfulbuild", ╤В╨░╨║ ╨║╨░╨║ ╨▒╤Л╨╗╨╛ ╨╖╨░╨┤╨░╨╜╨╛ "AlwaysCreate".
+          ╨Ю╨▒╤А╨░╤Й╨╡╨╜╨╕╨╡ ╨║ "cmTC_0171d.dir\\Debug\\cmTC_0171d.tlog\\unsuccessfulbuild".
         ClCompile:
-          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /Fo"cmTC_92192.dir\\Debug\\\\" /Fd"cmTC_92192.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-4.2\\Modules\\CMakeCXXCompilerABI.cpp"
-          ╨Ю╨┐╤В╨╕╨╝╨╕╨╖╨╕╤А╤Г╤О╤Й╨╕╨╣ ╨║╨╛╨╝╨┐╨╕╨╗╤П╤В╨╛╤А Microsoft (R) C/C++ ╨▓╨╡╤А╤Б╨╕╨╕ 19.50.35720 ╨┤╨╗╤П x64
+          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\CL.exe /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /Fo"cmTC_0171d.dir\\Debug\\\\" /Fd"cmTC_0171d.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-4.2\\Modules\\CMakeCXXCompilerABI.cpp"
+          ╨Ю╨┐╤В╨╕╨╝╨╕╨╖╨╕╤А╤Г╤О╤Й╨╕╨╣ ╨║╨╛╨╝╨┐╨╕╨╗╤П╤В╨╛╤А Microsoft (R) C/C++ ╨▓╨╡╤А╤Б╨╕╨╕ 19.50.35721 ╨┤╨╗╤П x64
           (C) ╨Ъ╨╛╤А╨┐╨╛╤А╨░╤Ж╨╕╤П ╨Ь╨░╨╣╨║╤А╨╛╤Б╨╛╤Д╤В (Microsoft Corporation).  ╨Т╤Б╨╡ ╨┐╤А╨░╨▓╨░ ╨╖╨░╤Й╨╕╤Й╨╡╨╜╤Л.
-          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /Fo"cmTC_92192.dir\\Debug\\\\" /Fd"cmTC_92192.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-4.2\\Modules\\CMakeCXXCompilerABI.cpp"
+          cl /c /Zi /W1 /WX- /diagnostics:column /Od /Ob0 /D _MBCS /D WIN32 /D _WINDOWS /D _MBCS /D "CMAKE_INTDIR=\\"Debug\\"" /EHsc /RTC1 /MDd /Fo"cmTC_0171d.dir\\Debug\\\\" /Fd"cmTC_0171d.dir\\Debug\\vc145.pdb" /external:W1 /TP /errorReport:queue "C:\\Program Files\\CMake\\share\\cmake-4.2\\Modules\\CMakeCXXCompilerABI.cpp"
           CMakeCXXCompilerABI.cpp
         Link:
-          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\link.exe /OUT:"C:\\Users\\╨Р╨╜╨┤╤А╨╡╨╣\\source\\repos\\CmakeParser\\build\\CMakeFiles\\CMakeScratch\\TryCompile-aq1g6m\\Debug\\cmTC_92192.exe" /INCREMENTAL /ILK:"cmTC_92192.dir\\Debug\\cmTC_92192.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/╨Р╨╜╨┤╤А╨╡╨╣/source/repos/CmakeParser/build/CMakeFiles/CMakeScratch/TryCompile-aq1g6m/Debug/cmTC_92192.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /IMPLIB:"C:/Users/╨Р╨╜╨┤╤А╨╡╨╣/source/repos/CmakeParser/build/CMakeFiles/CMakeScratch/TryCompile-aq1g6m/Debug/cmTC_92192.lib" /MACHINE:X64  /machine:x64 cmTC_92192.dir\\Debug\\CMakeCXXCompilerABI.obj
-          cmTC_92192.vcxproj -> C:\\Users\\╨Р╨╜╨┤╤А╨╡╨╣\\source\\repos\\CmakeParser\\build\\CMakeFiles\\CMakeScratch\\TryCompile-aq1g6m\\Debug\\cmTC_92192.exe
+          C:\\Program Files\\Microsoft Visual Studio\\18\\Community\\VC\\Tools\\MSVC\\14.50.35717\\bin\\HostX64\\x64\\link.exe /OUT:"C:\\Users\\╨Р╨╜╨┤╤А╨╡╨╣\\source\\repos\\CmakeParser\\build\\CMakeFiles\\CMakeScratch\\TryCompile-hryfp5\\Debug\\cmTC_0171d.exe" /INCREMENTAL /ILK:"cmTC_0171d.dir\\Debug\\cmTC_0171d.ilk" /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:/Users/╨Р╨╜╨┤╤А╨╡╨╣/source/repos/CmakeParser/build/CMakeFiles/CMakeScratch/TryCompile-hryfp5/Debug/cmTC_0171d.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /IMPLIB:"C:/Users/╨Р╨╜╨┤╤А╨╡╨╣/source/repos/CmakeParser/build/CMakeFiles/CMakeScratch/TryCompile-hryfp5/Debug/cmTC_0171d.lib" /MACHINE:X64  /machine:x64 cmTC_0171d.dir\\Debug\\CMakeCXXCompilerABI.obj
+          cmTC_0171d.vcxproj -> C:\\Users\\╨Р╨╜╨┤╤А╨╡╨╣\\source\\repos\\CmakeParser\\build\\CMakeFiles\\CMakeScratch\\TryCompile-hryfp5\\Debug\\cmTC_0171d.exe
         FinalizeBuildStatus:
-          ╨д╨░╨╣╨╗ "cmTC_92192.dir\\Debug\\cmTC_92192.tlog\\unsuccessfulbuild" ╤Г╨┤╨░╨╗╤П╨╡╤В╤Б╤П.
-          ╨Ю╨▒╤А╨░╤Й╨╡╨╜╨╕╨╡ ╨║ "cmTC_92192.dir\\Debug\\cmTC_92192.tlog\\cmTC_92192.lastbuildstate".
-        ╨б╨▒╨╛╤А╨║╨░ ╨┐╤А╨╛╨╡╨║╤В╨░ "C:\\Users\\╨Р╨╜╨┤╤А╨╡╨╣\\source\\repos\\CmakeParser\\build\\CMakeFiles\\CMakeScratch\\TryCompile-aq1g6m\\cmTC_92192.vcxproj" ╨╖╨░╨▓╨╡╤А╤И╨╡╨╜╨░ (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
+          ╨д╨░╨╣╨╗ "cmTC_0171d.dir\\Debug\\cmTC_0171d.tlog\\unsuccessfulbuild" ╤Г╨┤╨░╨╗╤П╨╡╤В╤Б╤П.
+          ╨Ю╨▒╤А╨░╤Й╨╡╨╜╨╕╨╡ ╨║ "cmTC_0171d.dir\\Debug\\cmTC_0171d.tlog\\cmTC_0171d.lastbuildstate".
+        ╨б╨▒╨╛╤А╨║╨░ ╨┐╤А╨╛╨╡╨║╤В╨░ "C:\\Users\\╨Р╨╜╨┤╤А╨╡╨╣\\source\\repos\\CmakeParser\\build\\CMakeFiles\\CMakeScratch\\TryCompile-hryfp5\\cmTC_0171d.vcxproj" ╨╖╨░╨▓╨╡╤А╤И╨╡╨╜╨░ (╤Ж╨╡╨╗╨╡╨▓╤Л╨╡ ╨╛╨▒╤К╨╡╨║╤В╤Л ╨┐╨╛ ╤Г╨╝╨╛╨╗╤З╨░╨╜╨╕╤О).
         
         ╨б╨▒╨╛╤А╨║╨░ ╤Г╤Б╨┐╨╡╤И╨╜╨╛ ╨╖╨░╨▓╨╡╤А╤И╨╡╨╜╨░.
             ╨Я╤А╨╡╨┤╤Г╨┐╤А╨╡╨╢╨┤╨╡╨╜╨╕╨╣: 0
             ╨Ю╤И╨╕╨▒╨╛╨║: 0
         
-        ╨Я╤А╨╛╤И╨╗╨╛ ╨▓╤А╨╡╨╝╨╡╨╜╨╕ 00:00:00.44
+        ╨Я╤А╨╛╤И╨╗╨╛ ╨▓╤А╨╡╨╝╨╡╨╜╨╕ 00:00:00.46
         
       exitCode: 0
   -
@@ -1108,6 +1108,6 @@ events:
       - "CMakeLists.txt:2 (project)"
     message: |
       Running the CXX compiler's linker: "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.50.35717/bin/HostX64/x64/link.exe" "-v"
-      Microsoft (R) Incremental Linker Version 14.50.35720.0
+      Microsoft (R) Incremental Linker Version 14.50.35721.0
       Copyright (C) Microsoft Corporation.  All rights reserved.
 ...

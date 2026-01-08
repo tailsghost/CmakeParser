@@ -6,9 +6,17 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="C:\Users\Андрей\source\repos\CmakeParser\Includes\ThreadPoolService.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
     <CustomBuild Include="C:\Users\Андрей\source\repos\CmakeParser\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{E46C082C-B8C8-34EE-A628-3A83EA466216}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Source Files">
       <UniqueIdentifier>{82DB06E9-69DA-3C35-83DA-2CB816E6F62E}</UniqueIdentifier>
     </Filter>

@@ -1,24 +1,24 @@
 ﻿#pragma once
 
-#include "CmakeParser.h"
 #include <filesystem>
+#include "ProjectModel.hpp"
 
 namespace cmakeparser {
 
 	class RspFileGenerator
 	{
 	public:
-		explicit RspFileGenerator(const ProjectModel& model, const std::wstring& buildDir) : rspDir_(buildDir + L"/rsp/"), model_(model) {
-			CreateDirectoryW(rspDir_);
+		explicit RspFileGenerator(const ProjectModel& model, const std::wstring& rspDir) : rspDir_(rspDir), model_(model) {
+			
 		}
 
-		const std::wstring CreateNextRspFile() {
+		bool CreateNextRspFile(std::wstring& rspFile) {
 			auto fileName = std::filesystem::path(model_.GetSrcPathC(index_)).filename().wstring();
-			auto rspPath = rspDir_ + fileName + L".obj_compile.rsp";
-			std::ofstream  ofs(rspPath, std::ios::out | std::ios::trunc);
+			rspFile = rspDir_ + L"/" + fileName + L".obj_compile.rsp";
+			std::ofstream  ofs(rspFile, std::ios::out | std::ios::trunc);
 			if (!ofs) {
-				std::wcerr << L"Cannot create file: " << rspPath << L"\n";
-				return L"";
+				std::wcerr << L"Cannot create file: " << rspFile << L"\n";
+				return false;
 			}
 
 			const auto& flags = model_.Flags();
@@ -35,11 +35,11 @@ namespace cmakeparser {
 			}
 
 			index_++;
-			return rspPath;
+			return true;
 		}
 
 		const std::wstring CreateLinkRspFile(std::vector<std::wstring> links) {
-			auto rspPath = rspDir_ + L"link.rsp";
+			auto rspPath = rspDir_ + L"/link.rsp";
 			std::ofstream  ofs(rspPath, std::ios::out | std::ios::trunc);
 			if (!ofs) {
 				std::wcerr << L"Cannot create file: " << rspPath << L"\n";
@@ -49,7 +49,7 @@ namespace cmakeparser {
 			const auto& flagsAsm = model_.LinkAsmFlags();
 			const auto& flags = model_.LinkFlags();
 			for (auto& c : flagsT) {
-				std::string line = "-T " + ToAnsi(quote_w(c)) + "\n";
+				std::string line = "-Wl,-T " + ToAnsi(quote_w(c)) + "\n";
 				ofs.write(line.c_str(), line.size());
 			}
 			for (auto link : links)

@@ -5,7 +5,7 @@
 #include <map>
 #include <cwctype>
 
-#include "CmakeParser.h"
+#include "ProjectModel.hpp"
 
 namespace cmakeparser {
 
@@ -13,8 +13,8 @@ namespace cmakeparser {
 	public:
 		explicit CommandGenerator(
 			const ProjectModel& model,
-			const std::wstring& pathGcc, const std::wstring& pathArm)
-			: model_(model), pathGcc_(pathGcc + L"arm-none-eabi-gcc.exe"), pathGObj_(pathGcc + L"arm-none-eabi-objcopy.exe"), pathArm_(pathArm)
+			const std::wstring& pathGcc, const std::wstring& pathArm, const std::wstring& buildPath)
+			: model_(model), pathGcc_(pathGcc + L"arm-none-eabi-gcc.exe"), patheEabild(L"arm-none-eabi-ld.exe"), buildPath_(buildPath), pathGObj_(pathGcc + L"arm-none-eabi-objcopy.exe"), pathArm_(pathArm)
 		{
 		}
 
@@ -27,8 +27,10 @@ namespace cmakeparser {
 				return false;
 
 			auto file = model_.GetSrcPathC(index_++);
-			std::wstring fileObjName = file + L".obj";
-			out = quote_w(pathGcc_) +  L" @" + quote_w(pathRsp) + L" -MD -MT " + quote_w(fileObjName) + L" -MF " + quote_w(file + L".obj.d") + L" -o " + quote_w(file + L".obj") + L" -c " + quote_w(file);
+			std::wstring fileName = std::filesystem::path(file).filename().wstring();
+			std::wstring fileObjName = buildPath_ + L"/" + fileName + L".obj";
+			std::wstring fileObjDName = buildPath_ + L"/" + fileName + L".obj.d";
+			out = quote_w(pathGcc_) +  L" @" + quote_w(pathRsp) + L" -MD -MT " + quote_w(fileObjName) + L" -MF " + quote_w(fileObjDName) + L" -o " + quote_w(fileObjName) + L" -c " + quote_w(file);
 			link_.push_back(fileObjName);
 			return true;
 		}
@@ -55,6 +57,8 @@ namespace cmakeparser {
 		size_t index_ = 0;
 		size_t indexLink_ = 0;
 		const std::wstring pathGcc_;
+		const std::wstring patheEabild;
+		const std::wstring buildPath_;
 		const std::wstring pathArm_;
 		const std::wstring pathGObj_;
 

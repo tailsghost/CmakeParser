@@ -1,5 +1,4 @@
 ﻿#pragma once
-
 #include <string>
 #include <vector>
 #include <map>
@@ -8,14 +7,18 @@
 #include <iostream>
 #include <cwctype>
 #include <algorithm>
-
 #include <windows.h>
 #include <filesystem>
+#include "CommandGenerator.hpp"
+#include "RspFileGenerator.hpp"
+#include "ProjectModel.hpp"
+#include "ProcessRunGuard.h"
+#include "ThreadPoolService.h"
+#include "HeaderHelpers.h"
 
 using namespace std::filesystem;
 
 namespace cmakeparser {
-
 
 	static inline bool CreateDirectoryW(const std::wstring path) {
 		std::error_code ec;
@@ -23,14 +26,12 @@ namespace cmakeparser {
 		return !ec;
 	};
 
-
 	struct Command {
 		std::wstring name;
 		std::wstring raw_args;
 		std::vector<std::wstring> args;
 		int line_start = -1;
 		int line_end = -1;
-
 
 	public:
 		const std::wstring GenerateCommand() {
@@ -46,92 +47,11 @@ namespace cmakeparser {
 		std::vector<Command> commands_;
 	};
 
-	class ProjectModel {
-	public:
-		void AddIncludeDir(const std::wstring& d, const std::wstring baseDir) {
-			include_dirs_.push_back(NormalizePath(d, baseDir));
-		}
-		void AddSet(const std::wstring& k, const std::vector<std::wstring>& v) { sets_[k] = v; }
-		void AddTarget(const std::wstring& t, const std::vector<std::wstring>& s) { targets_[t] = s; }
-		void AddProject(const std::wstring& p, const std::wstring baseDir) { projects_.push_back(NormalizePath(p, baseDir)); }
-		void AddSrc(const std::wstring& p, const std::wstring baseDir) { src_.push_back(NormalizePath(p, baseDir)); }
-		void AddCompileFlags(const std::wstring& f) {
-			std::wstringstream ss(f);
-			std::wstring word;
-			while (ss >> word) {
-				compile_flags_.push_back(word);
-			};
-		}
-
-		void AddAsmFlags(const std::wstring& f) {
-			std::wstringstream ss(f);
-			std::wstring word;
-			while (ss >> word) {
-				linkAsmFlag_.push_back(word);
-			};
-		}
-
-		void AddLinkFlags(const std::wstring& f) {
-			std::wstringstream ss(f);
-			std::wstring word;
-			while (ss >> word) {
-				linkFlag_.push_back(word);
-			};
-		}
-
-		void AddLinkTFlags(const std::wstring& f) {
-			linkTFlag_.push_back(f);
-		}
-
-		const auto& IncludeDirs() const { return include_dirs_; }
-		const auto& Sets() const { return sets_; }
-		const auto& Targets() const { return targets_; }
-		const auto& Projects() const { return projects_; }
-		const auto& Flags() const { return compile_flags_; }
-		const auto& LinkFlags() const { return linkFlag_; }
-		const auto& LinkTFlags() const { return linkTFlag_; }
-		const auto& LinkAsmFlags() const { return linkAsmFlag_; }
-
-		const std::wstring& GetSrcPathC(size_t index) const {
-			const std::wstring empty;
-			if (src_.size() > index) {
-				return src_[index];
-			}
-			return empty;
-		}
-
-		const size_t SrcCount() const {
-			return src_.size();
-		}
-
-	private:
-		std::vector<std::wstring> include_dirs_;
-		std::map<std::wstring, std::vector<std::wstring>> sets_;
-		std::map<std::wstring, std::vector<std::wstring>> targets_;
-		std::vector<std::wstring> projects_;
-		std::vector<std::wstring> compile_flags_;
-		std::vector<std::wstring> src_;
-		std::vector<std::wstring> linkFlag_;
-		std::vector<std::wstring> linkTFlag_;
-		std::vector<std::wstring> linkAsmFlag_;
-
-	private:
-		std::wstring NormalizePath(const std::wstring& d, const std::wstring baseDir) const {
-			std::wstring result = d;
-			const std::wstring token = L"${BASE_DIR}";
-			size_t pos = 0;
-			while ((pos = result.find(token, pos) != std::wstring::npos)) {
-				result.replace(pos - 1, token.length(), baseDir);
-				pos += baseDir.length();
-			}
-
-			return result;
-		}
-	};
 
 	class CmakeParser {
 	public:
-		explicit CmakeParser() = default;
+		explicit CmakeParser(bool clearBuild,std::function<void(const std::wstring&, const std::wstring& logFile, bool, bool)> callback = nullptr) : callback_(callback), clearDir_(clearBuild) {
+		}
 		bool Parse(const std::wstring& path)
 		{
 			Reset();
@@ -161,6 +81,15 @@ namespace cmakeparser {
 
 			ParseCommands();
 			BuildModel();
+
+			if (clearDir_) {
+				auto& dir = GetBuildPath();
+				std::filesystem::remove_all(dir);
+				std::filesystem::create_directories(dir);
+			}
+
+			SetBaseDir(basePath_);
+
 			return true;
 		}
 
@@ -168,16 +97,148 @@ namespace cmakeparser {
 			os << L"CMake parse result\n";
 			for (const auto& c : ast_.Commands()) {
 				os << L"[" << c.name << L"] ";
-				for (auto& a : c.args)
-					os << a << L" ";
+				for (auto& a : c.args) os << a << L" ";
 				os << L"\n";
 			}
+		}
+
+
+
+		int Build(const bool isFullLog, const std::wstring& logFile) {
+			logFile_ = logFile;
+			if (std::filesystem::exists(logFile)) {
+				logFileHandle_ = CreateFileW(logFile_.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+			}
+			else {
+				logFileHandle_ = CreateFileW(std::wstring(GetBuildPath() + L"/build.log").c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+			}
+			auto result = GetModel();
+			auto commands = GetAST();
+			RspFileGenerator rspGenerator(result, GetRspPath());
+			CommandGenerator generator(result, GetBasePath() + L"/NinjaBuilder/tools/gcc-arm-none-eabi/bin/", GetM3Path() + L"/src/mdk-arm/", GetObjPath());
+			auto objcopy = GetBasePath() + L"/tools/gcc-arm-none-eabi/bin/arm-none-eabi-objcopy.exe";
+			ProcessRunGuard guard;
+			auto& pool = ThreadPoolService::Instance().Pool();
+
+			pool.Start();
+
+			while (generator.HasNext()) {
+				std::wstring command;
+				std::wstring rspFile;
+				if (rspGenerator.CreateNextRspFile(rspFile)) {
+					generator.Next(command, rspFile);
+					auto buildPathCopy = GetBuildPath();
+
+					pool.Submit([&guard, command]() {
+						ProcessRunGuardResult result;
+						guard.RunCommand(command, result);
+						return result;
+						});
+				}
+			}
+
+			pool.WaitAll();
+
+			ProcessRunGuardResult r;
+			size_t i = 1;
+			while (pool.GetNext(r)) {
+
+				std::wstring p = std::to_wstring(i++);
+
+				if (!r.stderrText.empty())
+				{
+					SetConsole(r.stderrText, r.stderrText, false);
+
+					if (r.code != 0) {
+						std::wstringstream ss;
+						ss << L"Failed with exit code: " << r.code << L"\n";
+						SetConsole(ss.str(), ss.str(), false);
+						break;
+					}
+				}
+				std::wstringstream ss;
+				ss << L"[" << p << L" /" << pool.Count() << L"] " << r.command;
+				if (isFullLog)
+				{
+					SetConsole(ss.str(), ss.str());
+				}
+				else {
+					std::wstringstream ss1;
+					ss1 << L"[" << p << L" /" << pool.Count() << L"] " << L" успешно!";
+					SetConsole(ss1.str(), ss.str());
+				}
+			}
+
+			pool.WaitAll();
+
+			if (r.code != 0) {
+				if (logFileHandle_ != INVALID_HANDLE_VALUE) {
+					CloseHandle(logFileHandle_);
+				}
+				return r.code;
+			}
+
+			SetConsole(L"Создание elf...", L"Создание elf...");
+
+			auto pathElf = GetBuildPath() + L"/MAIN.elf";
+			auto pathBin = GetBuildPath() + L"/MAIN.bin";
+			auto pathHex = GetBuildPath() + L"/MAIN.hex";
+			std::wstring pathLinkFile = rspGenerator.CreateLinkRspFile(generator.GetLinks());
+			auto command = generator.CreateLinkCommand(pathLinkFile, pathElf);
+			auto commandBin = generator.CreateBinCommand(pathElf, pathBin);
+			auto commandHex = generator.CreateHexCommand(pathElf, pathHex);
+			{
+				ProcessRunGuardResult result;
+				guard.RunCommand(command, result);
+
+				if (result.seccess) {
+					if (isFullLog) {
+						SetConsole(result.command, result.command);
+						SetConsole(L"Elf успешно создан!", L"Elf успешно создан!");
+					}
+					else {
+						SetConsole(L"Elf успешно создан!", result.command,true, true);
+					}
+				}
+				else {
+					SetConsole(result.stderrText, result.stderrText, false);
+					if (logFileHandle_ != INVALID_HANDLE_VALUE) {
+						CloseHandle(logFileHandle_);
+					}
+					return (int)result.code;
+				}
+			}
+
+			{
+				ProcessRunGuardResult result;
+				guard.RunCommand(commandBin, result);
+
+				if (result.seccess) {
+					if (isFullLog) {
+						SetConsole(result.command, result.command);
+						SetConsole(L"Bin успешно создан!", result.command,true,true);
+					}
+					else {
+						SetConsole(L"Bin успешно создан!", result.command, true, true);
+					}
+				}
+				else {
+					SetConsole(result.stderrText, result.stderrText, false);
+					if (logFileHandle_ != INVALID_HANDLE_VALUE) {
+						CloseHandle(logFileHandle_);
+					}
+					return (int)result.code;
+				}
+			}
+
+			return 0;
 		}
 
 		const std::wstring& GetBasePath() const { return basePath_; }
 		const std::wstring& GetM3Path() const { return m3Path_; }
 		const std::wstring& GetBuildPath() const { return buildPath_; }
-
+		const std::wstring& GetObjPath() const { return objPath_; }
+		const std::wstring& GetRspPath() const { return rspPath_; }
 		const AST& GetAST() const { return ast_; }
 		const ProjectModel& GetModel() const { return model_; }
 
@@ -185,26 +246,82 @@ namespace cmakeparser {
 		std::wstring basePath_;
 		std::wstring m3Path_;
 		std::wstring buildPath_;
-
+		std::wstring objPath_;
+		std::wstring rspPath_;
 		std::wstring text_;
 		int pos_ = 0;
 		int n_ = 0;
 		int line_ = 1;
+		bool clearDir_;
 
 		AST ast_;
 		ProjectModel model_;
 		std::wstring last_error_;
 
+		HANDLE logFileHandle_ = INVALID_HANDLE_VALUE;
+		std::wstring logFile_;
+		std::mutex g_logMutex_;
+		std::function<void(const std::wstring&, const std::wstring&, bool, bool)> callback_;
+
 	private:
 
 		void SetBaseDir(const std::wstring& path) {
-			if (basePath_.empty())
-			{
-				basePath_ = path;
-				m3Path_ = basePath_ + L"/NinjaBuilder/M3_CITY2";
-				buildPath_ = m3Path_ + L"/Build";
-			}
+			basePath_ = path;
+			m3Path_ = basePath_ + L"/NinjaBuilder/M3_CITY2";
+			buildPath_ = m3Path_ + L"/Build";
+
+			std::filesystem::create_directories(buildPath_);
+			rspPath_ = buildPath_ + L"/rsp";
+			objPath_ = buildPath_ + L"/obj";
+			if (std::filesystem::exists(rspPath_))
+				std::filesystem::remove_all(rspPath_);
+
+			if (std::filesystem::exists(objPath_))
+				std::filesystem::remove_all(objPath_);
+
+			std::filesystem::create_directories(rspPath_);
+			std::filesystem::create_directories(objPath_);
 		};
+
+		void SetConsole(const std::wstring& text, const std::wstring& fullText, bool seccuses = true, bool repeat = false) {
+			if (callback_ == nullptr) {
+				std::wcout << text << L"\n";
+				LogAppend(fullText.c_str());
+				if(repeat)
+					LogAppend(text.c_str());
+			}
+			else {
+				callback_(text, fullText, seccuses, repeat);
+			}
+		}
+
+		void LogAppend(
+			const wchar_t* message)
+		{
+			if (logFileHandle_ == INVALID_HANDLE_VALUE)
+				return;
+
+			std::lock_guard<std::mutex> lk(g_logMutex_);
+
+			LARGE_INTEGER zero{};
+			if (!SetFilePointerEx(logFileHandle_, zero, nullptr, FILE_END))
+				return;
+
+			auto out = stringHelper::ToStringBestEffort(message);
+			if (out.empty())
+				return;
+
+			DWORD written = 0;
+			if (!WriteFile(logFileHandle_,
+				out.data(),
+				static_cast<DWORD>(out.size()),
+				&written,
+				nullptr) ||
+				written != out.size())
+			{
+				// ошибка записи
+			}
+		}
 
 		void Reset() {
 			text_.clear();
@@ -372,7 +489,7 @@ namespace cmakeparser {
 				}
 
 				count++;
-				if (count == 64) 
+				if (count == 64)
 				{
 					count++;
 				}
@@ -394,7 +511,6 @@ namespace cmakeparser {
 				out = outres;
 				break;
 			}
-			
 			return find;
 		}
 
