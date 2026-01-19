@@ -47,6 +47,7 @@ int wmain(int argc, wchar_t* argv[])
     CmakeParser parser(true);
     parser.Parse(cmakePath);
     auto result = parser.Build(isFullLog, L"");
+    auto result1 = parser.Build(isFullLog, L"");
     std::wcout << L"Очищаем консоль.....\n";
     std::wcout.flush();
     _setmode(_fileno(stdout), oldOutMode);

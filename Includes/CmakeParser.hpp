@@ -137,8 +137,6 @@ namespace cmakeparser {
 				}
 			}
 
-			pool.WaitAll();
-
 			ProcessRunGuardResult r;
 			size_t i = 1;
 			while (pool.GetNext(r)) {
@@ -485,7 +483,13 @@ namespace cmakeparser {
 				else if ((c.name == L"add_executable" || c.name == L"add_library") && c.args.size() > 1)
 					model_.AddTarget(c.args[0], { c.args.begin() + 1, c.args.end() });
 				else if (c.name == L"include_directories") {
-					model_.AddIncludeDir(c.args[0], basePath_);
+					std::wstring name = L"";
+					for (size_t i = 0; i < c.args.size(); ++i) {
+						name += c.args[i];
+						if (i + 1 < c.args.size())
+							name += L" ";
+					}
+					model_.AddIncludeDir(name, basePath_);
 				}
 
 				count++;
