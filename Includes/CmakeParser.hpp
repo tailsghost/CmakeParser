@@ -13,7 +13,8 @@
 #include "RspFileGenerator.hpp"
 #include "ProjectModel.hpp"
 #include "ProcessRunGuard.h"
-#include "ThreadPoolService.h"
+#include "ThreadPool.h"
+#include "Task.h"
 #include "HeaderHelpers.h"
 
 using namespace std::filesystem;
@@ -50,7 +51,7 @@ namespace cmakeparser {
 
 	class CmakeParser {
 	public:
-		explicit CmakeParser(bool clearBuild,std::function<void(const std::wstring&, const std::wstring& logFile, bool, bool)> callback = nullptr) : callback_(callback), clearDir_(clearBuild) {
+		explicit CmakeParser(bool clearBuild, std::function<void(const std::wstring&, const std::wstring& logFile, bool, bool)> callback = nullptr) : callback_(callback), clearDir_(clearBuild) {
 		}
 		bool Parse(const std::wstring& path)
 		{
@@ -102,8 +103,6 @@ namespace cmakeparser {
 			}
 		}
 
-
-
 		int Build(const bool isFullLog, const std::wstring& logFile) {
 			logFile_ = logFile;
 			if (std::filesystem::exists(logFile)) {
@@ -118,118 +117,162 @@ namespace cmakeparser {
 			CommandGenerator generator(result, GetBasePath() + L"/NinjaBuilder/tools/gcc-arm-none-eabi/bin/", GetM3Path() + L"/src/mdk-arm/", GetObjPath());
 			auto objcopy = GetBasePath() + L"/tools/gcc-arm-none-eabi/bin/arm-none-eabi-objcopy.exe";
 			ProcessRunGuard guard;
-			auto& pool = ThreadPoolService::Instance().Pool();
 
-			pool.Start();
+			int ErrCode = 0;
+			std::vector<Task<ProcessRunGuardResult>> tasks;
+			std::atomic<size_t> indexBuild = (1);
+			std::vector<std::wstring> commands_;
 
 			while (generator.HasNext()) {
 				std::wstring command;
 				std::wstring rspFile;
 				if (rspGenerator.CreateNextRspFile(rspFile)) {
 					generator.Next(command, rspFile);
-					auto buildPathCopy = GetBuildPath();
-
-					pool.Submit([&guard, command]() {
+					commands_.push_back(command);
+				}
+			}
+			for (auto command : commands_) {
+				Task<ProcessRunGuardResult> task(
+					[this, &guard, command](CancellationToken tok) {
 						ProcessRunGuardResult result;
+
+						if (tok && tok->load()) {
+							result.code = -1;
+							return result;
+						}
+
 						guard.RunCommand(command, result);
 						return result;
-						});
-				}
-			}
+					},
+					0
+				);
 
-			ProcessRunGuardResult r;
-			size_t i = 1;
-			while (pool.GetNext(r)) {
+				task.Start();
 
-				std::wstring p = std::to_wstring(i++);
-
-				if (!r.stderrText.empty())
-				{
-					SetConsole(r.stderrText, r.stderrText, false);
-
+				task.ContinueWith([this, &ErrCode,&tasks,&isFullLog,&indexBuild,&commands_](ProcessRunGuardResult r) {
+					auto index = indexBuild.load(std::memory_order_acquire);
+					indexBuild.fetch_add(1, std::memory_order_relaxed);
 					if (r.code != 0) {
-						std::wstringstream ss;
-						ss << L"Failed with exit code: " << r.code << L"\n";
-						SetConsole(ss.str(), ss.str(), false);
-						break;
+
+						ErrCode = r.code;
+						CloseAll(tasks);
 					}
-				}
-				std::wstringstream ss;
-				ss << L"[" << p << L" /" << pool.Count() << L"] " << r.command;
-				if (isFullLog)
-				{
-					SetConsole(ss.str(), ss.str());
-				}
-				else {
-					std::wstringstream ss1;
-					ss1 << L"[" << p << L" /" << pool.Count() << L"] " << L" успешно!";
-					SetConsole(ss1.str(), ss.str());
-				}
+					else {
+						if (!r.stderrText.empty()) {
+							SetConsole(r.stderrText, r.stderrText, false);
+
+							if (r.code != 0) {
+								std::wstringstream ss;
+								ss << L"Failed with exit code: " << r.code << L"\n";
+								SetConsole(ss.str(), ss.str(), false);
+								return;
+							}
+						}
+
+						std::wstringstream ss;
+						ss << L"[" << index << L" /" << commands_.size() << L"] " << r.command;
+
+						if (isFullLog) {
+							SetConsole(ss.str(), ss.str());
+						}
+						else {
+							std::wstringstream ss1;
+							ss1 << L"[" << index << L" /" << commands_.size() << L"] " << L" успешно!";
+							SetConsole(ss1.str(), ss.str());
+						}
+					}
+					});
+
+
+				tasks.push_back(std::move(task));
 			}
 
-			pool.WaitAll();
+			WaitAll(tasks);
 
-			if (r.code != 0) {
+			if (ErrCode != 0) {
 				if (logFileHandle_ != INVALID_HANDLE_VALUE) {
 					CloseHandle(logFileHandle_);
 				}
-				return r.code;
+				return ErrCode;
 			}
 
-			SetConsole(L"Создание elf...", L"Создание elf...");
+			Task<int> task([&guard,this, &rspGenerator, &generator, isFullLog] {
+				SetConsole(L"Создание elf...", L"Создание elf...");
 
-			auto pathElf = GetBuildPath() + L"/MAIN.elf";
-			auto pathBin = GetBuildPath() + L"/MAIN.bin";
-			auto pathHex = GetBuildPath() + L"/MAIN.hex";
-			std::wstring pathLinkFile = rspGenerator.CreateLinkRspFile(generator.GetLinks());
-			auto command = generator.CreateLinkCommand(pathLinkFile, pathElf);
-			auto commandBin = generator.CreateBinCommand(pathElf, pathBin);
-			auto commandHex = generator.CreateHexCommand(pathElf, pathHex);
-			{
-				ProcessRunGuardResult result;
-				guard.RunCommand(command, result);
+				auto pathElf = GetBuildPath() + L"/MAIN.elf";
+				auto pathBin = GetBuildPath() + L"/MAIN.bin";
+				auto pathLinkFile = rspGenerator.CreateLinkRspFile(generator.GetLinks());
+				auto command = generator.CreateLinkCommand(pathLinkFile, pathElf);
+				auto commandBin = generator.CreateBinCommand(pathElf, pathBin);
+				{
+					ProcessRunGuardResult result;
+					guard.RunCommand(command, result);
 
-				if (result.seccess) {
-					if (isFullLog) {
-						SetConsole(result.command, result.command);
-						SetConsole(L"Elf успешно создан!", L"Elf успешно создан!");
+					if (result.seccess) {
+						if (isFullLog) {
+							SetConsole(result.command, result.command);
+							SetConsole(L"Elf успешно создан!", L"Elf успешно создан!");
+						}
+						else {
+							SetConsole(L"Elf успешно создан!", result.command, true, true);
+						}
 					}
 					else {
-						SetConsole(L"Elf успешно создан!", result.command,true, true);
+						SetConsole(result.stderrText, result.stderrText, false);
+						if (logFileHandle_ != INVALID_HANDLE_VALUE) {
+							CloseHandle(logFileHandle_);
+						}
+						return (int)result.code;
 					}
 				}
-				else {
-					SetConsole(result.stderrText, result.stderrText, false);
-					if (logFileHandle_ != INVALID_HANDLE_VALUE) {
-						CloseHandle(logFileHandle_);
-					}
-					return (int)result.code;
-				}
-			}
 
-			{
-				ProcessRunGuardResult result;
-				guard.RunCommand(commandBin, result);
+				{
+					ProcessRunGuardResult result;
+					guard.RunCommand(commandBin, result);
 
-				if (result.seccess) {
-					if (isFullLog) {
-						SetConsole(result.command, result.command);
-						SetConsole(L"Bin успешно создан!", result.command,true,true);
+					if (result.seccess) {
+						if (isFullLog) {
+							SetConsole(result.command, result.command);
+							SetConsole(L"Bin успешно создан!", result.command, true, true);
+						}
+						else {
+							SetConsole(L"Bin успешно создан!", result.command, true, true);
+						}
 					}
 					else {
-						SetConsole(L"Bin успешно создан!", result.command, true, true);
+						SetConsole(result.stderrText, result.stderrText, false);
+						if (logFileHandle_ != INVALID_HANDLE_VALUE) {
+							CloseHandle(logFileHandle_);
+						}
+						return (int)result.code;
 					}
 				}
-				else {
-					SetConsole(result.stderrText, result.stderrText, false);
-					if (logFileHandle_ != INVALID_HANDLE_VALUE) {
-						CloseHandle(logFileHandle_);
-					}
-					return (int)result.code;
-				}
+
+				return 0;
+				});
+
+			task.Start();
+
+			Task<void> clear([&tasks, &commands_] {
+				tasks.clear();
+				commands_.clear();
+				});
+			clear.Start();
+
+			for (size_t i = 0; i < 100; i++)
+			{
+				Task<void> task([i] {
+					auto res = i * i;
+					});
+
+				task.ContinueWith([&] {
+					auto res = task.IsReady();
+					});
+
+				task.Start();
 			}
 
-			return 0;
+			return task.Get();
 		}
 
 		const std::wstring& GetBasePath() const { return basePath_; }
@@ -285,7 +328,7 @@ namespace cmakeparser {
 			if (callback_ == nullptr) {
 				std::wcout << text << L"\n";
 				LogAppend(fullText.c_str());
-				if(repeat)
+				if (repeat)
 					LogAppend(text.c_str());
 			}
 			else {
@@ -475,7 +518,7 @@ namespace cmakeparser {
 						model_.AddAsmFlags(c.args[1]);
 					}
 					else if (c.raw_args.size() >= 3 && c.raw_args.substr(0, 3) == L"SRC") {
-						for (int i = 1; i < c.args.size();i++) {
+						for (int i = 1; i < c.args.size(); i++) {
 							model_.AddSrc(c.args[i], basePath_);
 						}
 					}
