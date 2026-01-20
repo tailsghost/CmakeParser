@@ -51,7 +51,7 @@ namespace cmakeparser {
 
 	class CmakeParser {
 	public:
-		explicit CmakeParser(bool clearBuild, std::function<void(const std::wstring&, const std::wstring& logFile, bool, bool)> callback = nullptr) : callback_(callback), clearDir_(clearBuild) {
+		explicit CmakeParser(bool clearBuild, std::function<void(const wchar_t*, const wchar_t* logFile, bool, bool)> callback = nullptr) : callback_(callback), clearDir_(clearBuild) {
 		}
 		bool Parse(const std::wstring& path)
 		{
@@ -159,12 +159,12 @@ namespace cmakeparser {
 					}
 					else {
 						if (!r.stderrText.empty()) {
-							SetConsole(r.stderrText, r.stderrText, false);
+							SetConsole(r.stderrText.c_str(), r.stderrText.c_str(), false);
 
 							if (r.code != 0) {
 								std::wstringstream ss;
 								ss << L"Failed with exit code: " << r.code << L"\n";
-								SetConsole(ss.str(), ss.str(), false);
+								SetConsole(ss.str().c_str(), ss.str().c_str(), false);
 								return;
 							}
 						}
@@ -173,12 +173,12 @@ namespace cmakeparser {
 						ss << L"[" << index << L" /" << commands_.size() << L"] " << r.command;
 
 						if (isFullLog) {
-							SetConsole(ss.str(), ss.str());
+							SetConsole(ss.str().c_str(), ss.str().c_str());
 						}
 						else {
 							std::wstringstream ss1;
 							ss1 << L"[" << index << L" /" << commands_.size() << L"] " << L" успешно!";
-							SetConsole(ss1.str(), ss.str());
+							SetConsole(ss1.str().c_str(), ss.str().c_str());
 						}
 					}
 					});
@@ -210,15 +210,15 @@ namespace cmakeparser {
 
 					if (result.seccess) {
 						if (isFullLog) {
-							SetConsole(result.command, result.command);
+							SetConsole(result.command.c_str(), result.command.c_str());
 							SetConsole(L"Elf успешно создан!", L"Elf успешно создан!");
 						}
 						else {
-							SetConsole(L"Elf успешно создан!", result.command, true, true);
+							SetConsole(L"Elf успешно создан!", result.command.c_str(), true, true);
 						}
 					}
 					else {
-						SetConsole(result.stderrText, result.stderrText, false);
+						SetConsole(result.stderrText.c_str(), result.stderrText.c_str(), false);
 						if (logFileHandle_ != INVALID_HANDLE_VALUE) {
 							CloseHandle(logFileHandle_);
 						}
@@ -232,15 +232,15 @@ namespace cmakeparser {
 
 					if (result.seccess) {
 						if (isFullLog) {
-							SetConsole(result.command, result.command);
-							SetConsole(L"Bin успешно создан!", result.command, true, true);
+							SetConsole(result.command.c_str(), result.command.c_str());
+							SetConsole(L"Bin успешно создан!", result.command.c_str(), true, true);
 						}
 						else {
-							SetConsole(L"Bin успешно создан!", result.command, true, true);
+							SetConsole(L"Bin успешно создан!", result.command.c_str(), true, true);
 						}
 					}
 					else {
-						SetConsole(result.stderrText, result.stderrText, false);
+						SetConsole(result.stderrText.c_str(), result.stderrText.c_str(), false);
 						if (logFileHandle_ != INVALID_HANDLE_VALUE) {
 							CloseHandle(logFileHandle_);
 						}
@@ -302,7 +302,7 @@ namespace cmakeparser {
 		HANDLE logFileHandle_ = INVALID_HANDLE_VALUE;
 		std::wstring logFile_;
 		std::mutex g_logMutex_;
-		std::function<void(const std::wstring&, const std::wstring&, bool, bool)> callback_;
+		std::function<void(const wchar_t*, const wchar_t*, bool, bool)> callback_;
 
 	private:
 
@@ -324,12 +324,12 @@ namespace cmakeparser {
 			std::filesystem::create_directories(objPath_);
 		};
 
-		void SetConsole(const std::wstring& text, const std::wstring& fullText, bool seccuses = true, bool repeat = false) {
+		void SetConsole(const wchar_t* text, const wchar_t* fullText, bool seccuses = true, bool repeat = false) {
 			if (callback_ == nullptr) {
 				std::wcout << text << L"\n";
-				LogAppend(fullText.c_str());
+				LogAppend(fullText);
 				if (repeat)
-					LogAppend(text.c_str());
+					LogAppend(text);
 			}
 			else {
 				callback_(text, fullText, seccuses, repeat);
@@ -341,27 +341,30 @@ namespace cmakeparser {
 		{
 			if (logFileHandle_ == INVALID_HANDLE_VALUE)
 				return;
+			auto logHandle = logFileHandle_;
+			auto& mutex = g_logMutex_;
+			Task<void> task([&logHandle, &mutex, message] {
+				std::lock_guard<std::mutex> lk(mutex);
 
-			std::lock_guard<std::mutex> lk(g_logMutex_);
+				LARGE_INTEGER zero{};
+				if (!SetFilePointerEx(logHandle, zero, nullptr, FILE_END))
+					return;
 
-			LARGE_INTEGER zero{};
-			if (!SetFilePointerEx(logFileHandle_, zero, nullptr, FILE_END))
-				return;
-
-			auto out = stringHelper::ToStringBestEffort(message);
-			if (out.empty())
-				return;
-
-			DWORD written = 0;
-			if (!WriteFile(logFileHandle_,
-				out.data(),
-				static_cast<DWORD>(out.size()),
-				&written,
-				nullptr) ||
-				written != out.size())
-			{
-				// ошибка записи
-			}
+				auto out = stringHelper::ToStringBestEffort(message);
+				if (out.empty())
+					return;
+				DWORD written = 0;
+				if (!WriteFile(logHandle,
+					out.data(),
+					static_cast<DWORD>(out.size()),
+					&written,
+					nullptr) ||
+					written != out.size())
+				{
+					// ошибка записи
+				}
+				});
+			task.Start(TaskPriority::High, TaskBound::IOBound);
 		}
 
 		void Reset() {
