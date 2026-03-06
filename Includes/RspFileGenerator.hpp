@@ -66,6 +66,9 @@ namespace cmakeparser {
 				ofs.write(line.c_str(), line.size());
 			}
 
+			std::string lmFlag = "-lm";
+			ofs.write(lmFlag.c_str(), lmFlag.size());
+
 			return rspPath;
 		}
 

@@ -81,7 +81,8 @@ namespace cmakeparser {
 			n_ = (int)text_.size();
 
 			ParseCommands();
-			BuildModel();
+			auto result  = BuildModel();
+			if (!result) return result;
 
 			if (clearDir_) {
 				auto& dir = GetBuildPath();
@@ -131,9 +132,9 @@ namespace cmakeparser {
 					commands_.push_back(command);
 				}
 			}
-			for (auto command : commands_) {
+			for (auto& command : commands_) {
 				Task<ProcessRunGuardResult> task(
-					[this, &guard, command](CancellationToken tok) {
+					[this, &guard, command, &isFullLog,&ErrCode, &indexBuild, &commands_,&tasks](CancellationToken tok) {
 						ProcessRunGuardResult result;
 
 						if (tok && tok->load()) {
@@ -142,47 +143,58 @@ namespace cmakeparser {
 						}
 
 						guard.RunCommand(command, result);
+
+						auto index = indexBuild.load(std::memory_order_acquire);
+						indexBuild.fetch_add(1, std::memory_order_relaxed);
+						if (result.code != 0) {
+
+							ErrCode = result.code;
+							if (!result.stderrText.empty()) {
+								SetConsole(result.stderrText.c_str(), result.stderrText.c_str(), false);
+
+								if (result.code != 0) {
+									std::wstringstream ss;
+									ss << L"Failed with exit code: " << result.code << L"\n";
+									SetConsole(ss.str().c_str(), ss.str().c_str(), false);
+									CloseAll(tasks);
+									return result;
+								}
+								CloseAll(tasks);
+							}
+						}
+						else {
+							if (!result.stderrText.empty()) {
+								SetConsole(result.stderrText.c_str(), result.stderrText.c_str(), false);
+
+								if (result.code != 0) {
+									std::wstringstream ss;
+									ss << L"Failed with exit code: " << result.code << L"\n";
+									SetConsole(ss.str().c_str(), ss.str().c_str(), false);
+									CloseAll(tasks);
+									return result;
+								}
+								CloseAll(tasks);
+							}
+
+							std::wstringstream ss;
+							ss << L"[" << index << L" /" << commands_.size() << L"] " << result.command;
+
+							if (isFullLog) {
+								SetConsole(ss.str().c_str(), ss.str().c_str());
+							}
+							else {
+								std::wstringstream ss1;
+								ss1 << L"[" << index << L" /" << commands_.size() << L"] " << L" успешно!";
+								SetConsole(ss1.str().c_str(), ss.str().c_str());
+							}
+						}
+
 						return result;
 					},
 					0
 				);
 
 				task.Start();
-
-				task.ContinueWith([this, &ErrCode,&tasks,&isFullLog,&indexBuild,&commands_](ProcessRunGuardResult r) {
-					auto index = indexBuild.load(std::memory_order_acquire);
-					indexBuild.fetch_add(1, std::memory_order_relaxed);
-					if (r.code != 0) {
-
-						ErrCode = r.code;
-						CloseAll(tasks);
-					}
-					else {
-						if (!r.stderrText.empty()) {
-							SetConsole(r.stderrText.c_str(), r.stderrText.c_str(), false);
-
-							if (r.code != 0) {
-								std::wstringstream ss;
-								ss << L"Failed with exit code: " << r.code << L"\n";
-								SetConsole(ss.str().c_str(), ss.str().c_str(), false);
-								return;
-							}
-						}
-
-						std::wstringstream ss;
-						ss << L"[" << index << L" /" << commands_.size() << L"] " << r.command;
-
-						if (isFullLog) {
-							SetConsole(ss.str().c_str(), ss.str().c_str());
-						}
-						else {
-							std::wstringstream ss1;
-							ss1 << L"[" << index << L" /" << commands_.size() << L"] " << L" успешно!";
-							SetConsole(ss1.str().c_str(), ss.str().c_str());
-						}
-					}
-					});
-
 
 				tasks.push_back(std::move(task));
 			}
@@ -196,7 +208,7 @@ namespace cmakeparser {
 				return ErrCode;
 			}
 
-			Task<int> task([&guard,this, &rspGenerator, &generator, isFullLog] {
+			Task<int> task([&guard, this, &rspGenerator, &generator, isFullLog] {
 				SetConsole(L"Создание elf...", L"Создание elf...");
 
 				auto pathElf = GetBuildPath() + L"/MAIN.elf";
@@ -208,7 +220,7 @@ namespace cmakeparser {
 					ProcessRunGuardResult result;
 					guard.RunCommand(command, result);
 
-					if (result.seccess) {
+					if (result.success) {
 						if (isFullLog) {
 							SetConsole(result.command.c_str(), result.command.c_str());
 							SetConsole(L"Elf успешно создан!", L"Elf успешно создан!");
@@ -230,7 +242,7 @@ namespace cmakeparser {
 					ProcessRunGuardResult result;
 					guard.RunCommand(commandBin, result);
 
-					if (result.seccess) {
+					if (result.success) {
 						if (isFullLog) {
 							SetConsole(result.command.c_str(), result.command.c_str());
 							SetConsole(L"Bin успешно создан!", result.command.c_str(), true, true);
@@ -493,9 +505,7 @@ namespace cmakeparser {
 			}
 		}
 
-		size_t count = 0;
-
-		void BuildModel() {
+		bool BuildModel() {
 			for (auto& c : ast_.Commands()) {
 				if (c.name == L"project" && !c.args.empty())
 					model_.AddProject(c.args[0], basePath_);
@@ -503,7 +513,10 @@ namespace cmakeparser {
 				{
 					model_.AddSet(c.args[0], { c.args.begin() + 1, c.args.end() });
 					if (c.args[0] == L"BASE_DIR") {
-						SetBaseDir(c.args[1]);
+						if (fs::exists(c.args[1]))
+							SetBaseDir(c.args[1]);
+						else
+							return false;
 					}
 					else if (c.args[0] == L"CMAKE_C_FLAGS") {
 						model_.AddCompileFlags(c.args[1]);
@@ -537,13 +550,8 @@ namespace cmakeparser {
 					}
 					model_.AddIncludeDir(name, basePath_);
 				}
-
-				count++;
-				if (count == 64)
-				{
-					count++;
-				}
 			}
+			return true;
 		}
 
 		bool NormalizePath(const std::wstring& d, const std::wstring baseDir, std::wstring& out) const {
