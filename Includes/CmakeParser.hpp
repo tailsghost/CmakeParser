@@ -81,7 +81,7 @@ namespace cmakeparser {
 			n_ = (int)text_.size();
 
 			ParseCommands();
-			auto result  = BuildModel();
+			auto result = BuildModel();
 			if (!result) return result;
 
 			if (clearDir_) {
@@ -104,14 +104,8 @@ namespace cmakeparser {
 			}
 		}
 
-		int Build(const bool isFullLog, const std::wstring& logFile) {
-			logFile_ = logFile;
-			if (std::filesystem::exists(logFile)) {
-				logFileHandle_ = CreateFileW(logFile_.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-			}
-			else {
-				logFileHandle_ = CreateFileW(std::wstring(GetBuildPath() + L"/build.log").c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-			}
+		int Build(const bool isFullLog, const HANDLE& logFileHandle) {
+			logFileHandle_ = logFileHandle;
 			auto result = GetModel();
 			auto commands = GetAST();
 			RspFileGenerator rspGenerator(result, GetRspPath());
@@ -132,24 +126,33 @@ namespace cmakeparser {
 					commands_.push_back(command);
 				}
 			}
+			CancellationToken token;
 			for (auto& command : commands_) {
 				Task<ProcessRunGuardResult> task(
-					[this, &guard, command, &isFullLog,&ErrCode, &indexBuild, &commands_,&tasks](CancellationToken tok) {
+					[this, &guard, command, &isFullLog, &ErrCode, &indexBuild, &commands_, &tasks](CancellationToken tok) {
 						ProcessRunGuardResult result;
 
 						if (tok && tok->load()) {
 							result.code = -1;
 							return result;
 						}
-
 						guard.RunCommand(command, result);
-
+						if (tok && tok->load()) {
+							result.code = -1;
+							return result;
+						}
 						auto index = indexBuild.load(std::memory_order_acquire);
 						indexBuild.fetch_add(1, std::memory_order_relaxed);
 						if (result.code != 0) {
 
 							ErrCode = result.code;
 							if (!result.stderrText.empty()) {
+
+								if (tok && tok->load()) {
+									result.code = -1;
+									return result;
+								}
+
 								SetConsole(result.stderrText.c_str(), result.stderrText.c_str(), false);
 
 								if (result.code != 0) {
@@ -164,6 +167,11 @@ namespace cmakeparser {
 						}
 						else {
 							if (!result.stderrText.empty()) {
+
+								if (tok && tok->load()) {
+									result.code = -1;
+									return result;
+								}
 								SetConsole(result.stderrText.c_str(), result.stderrText.c_str(), false);
 
 								if (result.code != 0) {
@@ -175,7 +183,10 @@ namespace cmakeparser {
 								}
 								CloseAll(tasks);
 							}
-
+							if (tok && tok->load()) {
+								result.code = -1;
+								return result;
+							}
 							std::wstringstream ss;
 							ss << L"[" << index << L" /" << commands_.size() << L"] " << result.command;
 
@@ -200,11 +211,7 @@ namespace cmakeparser {
 			}
 
 			WaitAll(tasks);
-
 			if (ErrCode != 0) {
-				if (logFileHandle_ != INVALID_HANDLE_VALUE) {
-					CloseHandle(logFileHandle_);
-				}
 				return ErrCode;
 			}
 
@@ -231,9 +238,6 @@ namespace cmakeparser {
 					}
 					else {
 						SetConsole(result.stderrText.c_str(), result.stderrText.c_str(), false);
-						if (logFileHandle_ != INVALID_HANDLE_VALUE) {
-							CloseHandle(logFileHandle_);
-						}
 						return (int)result.code;
 					}
 				}
@@ -253,9 +257,6 @@ namespace cmakeparser {
 					}
 					else {
 						SetConsole(result.stderrText.c_str(), result.stderrText.c_str(), false);
-						if (logFileHandle_ != INVALID_HANDLE_VALUE) {
-							CloseHandle(logFileHandle_);
-						}
 						return (int)result.code;
 					}
 				}
@@ -270,19 +271,6 @@ namespace cmakeparser {
 				commands_.clear();
 				});
 			clear.Start();
-
-			for (size_t i = 0; i < 100; i++)
-			{
-				Task<void> task([i] {
-					auto res = i * i;
-					});
-
-				task.ContinueWith([&] {
-					auto res = task.IsReady();
-					});
-
-				task.Start();
-			}
 
 			return task.Get();
 		}
@@ -310,9 +298,7 @@ namespace cmakeparser {
 		AST ast_;
 		ProjectModel model_;
 		std::wstring last_error_;
-
 		HANDLE logFileHandle_ = INVALID_HANDLE_VALUE;
-		std::wstring logFile_;
 		std::mutex g_logMutex_;
 		std::function<void(const wchar_t*, const wchar_t*, bool, bool)> callback_;
 
@@ -339,9 +325,6 @@ namespace cmakeparser {
 		void SetConsole(const wchar_t* text, const wchar_t* fullText, bool seccuses = true, bool repeat = false) {
 			if (callback_ == nullptr) {
 				std::wcout << text << L"\n";
-				LogAppend(fullText);
-				if (repeat)
-					LogAppend(text);
 			}
 			else {
 				callback_(text, fullText, seccuses, repeat);
@@ -513,7 +496,7 @@ namespace cmakeparser {
 				{
 					model_.AddSet(c.args[0], { c.args.begin() + 1, c.args.end() });
 					if (c.args[0] == L"BASE_DIR") {
-						if (fs::exists(c.args[1]))
+						if (std::filesystem::exists(c.args[1]))
 							SetBaseDir(c.args[1]);
 						else
 							return false;
@@ -549,6 +532,11 @@ namespace cmakeparser {
 							name += L" ";
 					}
 					model_.AddIncludeDir(name, basePath_);
+				}
+				else if (c.name == L"target_link_libraries")
+				{
+					auto lastArg = c.args[c.args.capacity()-1];
+					model_.AddLink(lastArg, m3Path_,L"${CMAKE_SOURCE_DIR}");
 				}
 			}
 			return true;

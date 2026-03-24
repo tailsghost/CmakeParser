@@ -48,6 +48,7 @@ namespace cmakeparser {
 			const auto& flagsT = model_.LinkTFlags();
 			const auto& flagsAsm = model_.LinkAsmFlags();
 			const auto& flags = model_.LinkFlags();
+			const auto& flagsLink = model_.LinkLibrary();
 			for (auto& c : flagsT) {
 				std::string line = "-Wl,-T " + ToAnsi(quote_w(c)) + "\n";
 				ofs.write(line.c_str(), line.size());
@@ -62,6 +63,12 @@ namespace cmakeparser {
 				ofs.write(line.c_str(), line.size());
 			}
 			for (auto& c : flags) {
+				std::string line = ToAnsi(c) + "\n";
+				ofs.write(line.c_str(), line.size());
+			}
+
+			for (auto& c: flagsLink)
+			{
 				std::string line = ToAnsi(c) + "\n";
 				ofs.write(line.c_str(), line.size());
 			}
